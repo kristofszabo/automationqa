@@ -2,21 +2,27 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
 
-import httpx
+from google import genai
+from google.genai import types
 
 from models.manifest import FrameEntry, Manifest
 
 # ---------------------------------------------------------------------------
-# Ollama / model config
+# Gemini config
 # ---------------------------------------------------------------------------
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen2.5vl"  # adjust to exact tag pulled in Phase 1
+_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
+# Available models (set GEMINI_MODEL env var to switch):
+#   gemini-2.5-flash-lite    — free tier, legolcsobb (default)
+#   gemini-2.5-flash         — free tier, jobb minőség
+#   gemini-2.0-flash         — stable, paid
+#   gemini-3-flash-preview   — latest preview
 BATCH_SIZE = 10
-REQUEST_TIMEOUT = 120  # seconds — vision inference is slow
 
 # ---------------------------------------------------------------------------
 # Action schema (produced into steps.json)
@@ -52,49 +58,22 @@ Rules:
 # Ollama call
 # ---------------------------------------------------------------------------
 
-def _encode_image(path: Path) -> str:
-    return base64.b64encode(path.read_bytes()).decode()
-
-
-def _call_ollama(batch_frames: list[FrameEntry]) -> str:
-    """Send a batch of frames to Qwen2.5-VL via Ollama and return raw response text.
-
-    Retries once with half the batch on OOM (HTTP 500 containing 'out of memory').
-    TODO: mask sensitive data (passwords, tokens) before sending images
-    """
-    images = [_encode_image(Path(f.path)) for f in batch_frames]
+def _call_gemini(batch_frames: list[FrameEntry]) -> str:
+    """Send a batch of frames to Gemini 1.5 Flash and return raw response text."""
     labels = "\n".join(
-        f"Frame {i + 1} — timestamp_ms={f.timestamp_ms}"
+        f"Frame {i + 1} - timestamp_ms={f.timestamp_ms}"
         for i, f in enumerate(batch_frames)
     )
-    user_content = f"Frames in this batch:\n{labels}\n\nExtract all UI actions."
+    parts: list[Any] = [f"Frames in this batch:\n{labels}\n\nExtract all UI actions."]
+    for f in batch_frames:
+        parts.append(types.Part.from_bytes(data=Path(f.path).read_bytes(), mime_type="image/png"))
 
-    payload = {
-        "model": OLLAMA_MODEL,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_content, "images": images},
-        ],
-        "stream": False,
-    }
-
-    try:
-        response = httpx.post(
-            f"{OLLAMA_BASE_URL}/api/chat",
-            json=payload,
-            timeout=REQUEST_TIMEOUT,
-        )
-        response.raise_for_status()
-        return response.json()["message"]["content"]
-
-    except httpx.HTTPStatusError as e:
-        body = e.response.text.lower()
-        if e.response.status_code == 500 and "out of memory" in body and len(batch_frames) > 1:
-            # OOM: retry with first half only
-            mid = len(batch_frames) // 2
-            print(f"[Phase 3] OOM on batch of {len(batch_frames)}, retrying with {mid} frames…")
-            return _call_ollama(batch_frames[:mid])
-        raise
+    response = _client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=parts,
+        config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
+    )
+    return response.text
 
 
 # ---------------------------------------------------------------------------
@@ -141,7 +120,7 @@ def run(manifest_path: Path, output_dir: Path) -> Path:
     all_actions: StepList = []
 
     for batch_start, batch_frames in _frame_batches(manifest, BATCH_SIZE):
-        raw = _call_ollama(batch_frames)
+        raw = _call_gemini(batch_frames)
         actions = _parse_response(raw, batch_start, batch_frames)
         all_actions.extend(actions)
 
