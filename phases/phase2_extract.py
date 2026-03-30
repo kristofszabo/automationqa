@@ -9,7 +9,6 @@ from PIL import Image
 
 from models.manifest import FrameEntry, Manifest
 
-
 def extract_frames(video_path: Path, output_dir: Path, fps: int = 2) -> list[Path]:
     """Run ffmpeg to extract frames at the given fps. Returns sorted list of PNG paths."""
     frames_dir = output_dir / "frames"
@@ -129,5 +128,5 @@ def run(
     manifest = build_manifest(kept, video_path, fps)
     manifest_path = output_dir / "manifest.json"
     manifest.save(manifest_path)
-    print(f"[Phase 2] Manifest written → {manifest_path}")
+    print(f"[Phase 2] Manifest written -> {manifest_path}")
     return manifest

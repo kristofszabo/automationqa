@@ -130,5 +130,5 @@ def run(manifest_path: Path, output_dir: Path) -> Path:
 
     steps_path = output_dir / "steps.json"
     steps_path.write_text(json.dumps(all_actions, indent=2), encoding="utf-8")
-    print(f"[Phase 3] {len(all_actions)} actions written → {steps_path}")
+    print(f"[Phase 3] {len(all_actions)} actions written -> {steps_path}")
     return steps_path

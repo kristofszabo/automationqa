@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from phases import phase2_extract, phase3_analyze
+from phases import phase2_extract, phase3_analyze, phase4_review
 
 
 def parse_args() -> argparse.Namespace:
@@ -43,6 +43,10 @@ def main() -> int:
     # Phase 3 — Vision Analysis (skeleton)
     manifest_path = workdir / "manifest.json"
     phase3_analyze.run(manifest_path=manifest_path, output_dir=workdir)
+
+    # Phase 4 — Step Review
+    steps_path = workdir / "steps.json"
+    phase4_review.run(steps_path=steps_path, output_dir=workdir)
 
     return 0
 

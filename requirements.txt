@@ -3,3 +3,5 @@ Pillow
 numpy
 opencv-python-headless
 httpx
+flask
+pytest

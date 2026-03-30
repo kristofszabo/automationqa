@@ -208,3 +208,7 @@ __marimo__/
 
 # Pipeline artifacts
 output*/
+
+# deepeval (LLM test framework — auto-created by pytest plugin, not used)
+.deepeval/
+
