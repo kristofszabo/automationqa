@@ -6,11 +6,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from phases import phase3_analyze
+from phases import phase5_generate
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="automationqa — Phase 3: vision analysis")
+    p = argparse.ArgumentParser(description="automationqa — Phase 5: test generation")
     p.add_argument("--workdir", default="output", type=Path, help="Working directory (default: output)")
     return p.parse_args()
 
@@ -18,13 +18,13 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     workdir = args.workdir.resolve()
-    manifest_path = workdir / "manifest.json"
+    steps_path = workdir / "steps.json"
 
-    if not manifest_path.exists():
-        print(f"Error: manifest.json not found in {workdir}", file=sys.stderr)
+    if not steps_path.exists():
+        print(f"Error: steps.json not found in {workdir}", file=sys.stderr)
         return 1
 
-    phase3_analyze.run(manifest_path=manifest_path, output_dir=workdir)
+    phase5_generate.run(steps_path=steps_path, output_dir=workdir)
     return 0
 
 

@@ -5,13 +5,15 @@ Converts a screen recording into a Playwright test by extracting frames, analysi
 ## Requirements
 
 - Python 3.11+
-- Node 18+ (for the review UI)
+- Node 18+ (for the review UI and TypeScript validation)
 - ffmpeg (must be on PATH)
 - A Gemini API key
 
 ```bash
 pip install -r requirements.txt
+playwright install chromium
 cd web && npm install && npm run build
+cd ../validation && npm install
 ```
 
 Set your API key:
@@ -89,13 +91,33 @@ npm run phase4 -- --workdir output
 
 ---
 
+### Phase 5 — Test Generation
+
+Replays the validated steps in a headless Chromium browser to collect a live DOM snapshot after each action. Feeds the steps and snapshots to Gemini to generate a Playwright TypeScript test using resilient selectors. Validates the output compiles with `tsc --noEmit` before proceeding (retries once with compiler errors as feedback if needed).
+
+**Input:** `<workdir>/steps.json`
+**Output:** `<workdir>/test_generated.spec.ts`, `<workdir>/snapshots/step_*.html`
+
+```bash
+npm run phase5
+npm run phase5 -- --workdir output
+```
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--workdir` | `output` | Directory containing `steps.json` |
+
+> Note: Browser replay requires a `navigate` step as the first action. Without it, snapshots are skipped and the test is generated from steps alone.
+
+---
+
 ## Running the full pipeline
 
 ```bash
 python main.py --video path/to/recording.mp4
 ```
 
-This runs Phase 2 → Phase 3 → Phase 4 in sequence.
+This runs Phase 2 → Phase 3 → Phase 4 → Phase 5 in sequence.
 
 ---
 

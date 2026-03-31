@@ -5,6 +5,7 @@
     "phase2": "python start-scripts/phase2.py",
     "phase3": "python start-scripts/phase3.py",
     "phase4": "python start-scripts/review.py",
+    "phase5": "python start-scripts/phase5.py",
     "test": "pytest tests/",
     "test:phase2": "pytest tests/test_phase2.py -v",
     "test:phase3": "pytest tests/test_phase3.py -v",
