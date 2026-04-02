@@ -10,8 +10,25 @@ from phases import phase5_generate
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="automationqa — Phase 5: test generation")
-    p.add_argument("--workdir", default="output", type=Path, help="Working directory (default: output)")
+    p = argparse.ArgumentParser(
+        description=(
+            "automationqa — Phase 5: Test generation\n"
+            "Uses Gemini to generate a Playwright TypeScript test from steps.json.\n"
+            "Validates with tsc, retries once on error.\n"
+            "Input:  <workdir>/steps.json\n"
+            "Output: <workdir>/test_generated.spec.ts\n"
+            "\n"
+            "Required env var: GEMINI_API_KEY\n"
+            "Optional env var: GEMINI_MODEL (default: gemini-2.5-flash-lite)"
+        ),
+        epilog=(
+            "examples:\n"
+            "  npm run phase5\n"
+            "  npm run phase5 -- --workdir output"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p.add_argument("--workdir", default="output", type=Path, help="Working directory containing steps.json (default: output)")
     return p.parse_args()
 
 

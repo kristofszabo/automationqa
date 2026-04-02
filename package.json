@@ -6,10 +6,13 @@
     "phase3": "python start-scripts/phase3.py",
     "phase4": "python start-scripts/review.py",
     "phase5": "python start-scripts/phase5.py",
+    "phase6": "python start-scripts/phase6.py",
+    "phase7": "python start-scripts/phase7.py",
     "test": "pytest tests/",
     "test:phase2": "pytest tests/test_phase2.py -v",
     "test:phase3": "pytest tests/test_phase3.py -v",
     "test:phase4": "pytest tests/test_phase4.py -v",
-    "build": "cd web && npm run build"
+    "build": "cd web && npm run build",
+    "codegen": "cd validation && npx playwright codegen --save-storage=../output/auth.json"
   }
 }

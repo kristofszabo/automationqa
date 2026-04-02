@@ -42,7 +42,7 @@ You are a UI action extractor. You receive a sequence of numbered screenshots \
 from a screen recording. Analyse them and return ONLY a JSON array of actions \
 that happened between the frames. Use this schema for each action:
 
-navigate : { "action": "navigate", "url": "<url>", "timestamp_ms": <int> }
+navigate : { "action": "navigate", "url": "<full url>", "timestamp_ms": <int> }
 click    : { "action": "click", "selector": "<css or text>", "timestamp_ms": <int> }
 type     : { "action": "type", "selector": "<css or text>", "value": "<text>", "timestamp_ms": <int> }
 assert   : { "action": "assert", "selector": "<css or text>", "expected": "<text>", "timestamp_ms": <int> }
@@ -51,6 +51,13 @@ Rules:
 - Output ONLY the JSON array, no explanation, no markdown code block.
 - If nothing changed between frames, return [].
 - Use the timestamp_ms values provided in the frame labels.
+- IMPORTANT: If this is the first batch (Frame 1 is present), always read the browser \
+address bar in Frame 1 and emit a navigate action with that URL and timestamp_ms=0, \
+even if no navigation change is visible between frames.
+- If the URL in the address bar changes between any two frames, emit a navigate action.
+- For selectors, use ONLY valid CSS selectors or Playwright text selectors. \
+NEVER use jQuery-style pseudo-selectors such as :contains(), :has-text(), :eq(), etc. \
+For text-based targets use the format: text=Button Label
 """
 
 
